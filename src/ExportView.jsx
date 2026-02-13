@@ -12,7 +12,6 @@ function formatCurrency(n) { return '¥' + n.toLocaleString() }
 
 export default function ExportView({ trips, profile, targetMonth, onBack, onUpdateProfile, readOnly }) {
   const [name, setName] = useState(profile?.display_name || '')
-  const [dept, setDept] = useState(profile?.department || '')
   const [printMode, setPrintMode] = useState(false)
 
   const monthLabel = targetMonth
@@ -24,8 +23,8 @@ export default function ExportView({ trips, profile, targetMonth, onBack, onUpda
   const grandTotal = totalTransport + totalAllowance
 
   const handlePrint = async () => {
-    if (!readOnly && (name !== profile?.display_name || dept !== profile?.department)) {
-      await onUpdateProfile(name, dept)
+    if (!readOnly && name !== profile?.display_name) {
+      await onUpdateProfile(name)
     }
     setPrintMode(true)
     setTimeout(() => {
@@ -42,7 +41,6 @@ export default function ExportView({ trips, profile, targetMonth, onBack, onUpda
           <h1 style={ps.title}>出張経費申請書</h1>
           <div style={ps.meta}>
             <div style={ps.mi}><span style={ps.ml}>申請者</span><span style={ps.mv}>{name || '\u3000'}</span></div>
-            <div style={ps.mi}><span style={ps.ml}>部署</span><span style={ps.mv}>{dept || '\u3000'}</span></div>
             <div style={ps.mi}><span style={ps.ml}>対象月</span><span style={ps.mv}>{monthLabel || '\u3000'}</span></div>
             <div style={ps.mi}><span style={ps.ml}>申請日</span><span style={ps.mv}>{formatDate(new Date().toISOString().split('T')[0])}</span></div>
           </div>
@@ -98,13 +96,6 @@ export default function ExportView({ trips, profile, targetMonth, onBack, onUpda
               {readOnly
                 ? <span style={s.metaVal}>{name}</span>
                 : <input style={s.metaInput} value={name} onChange={(e) => setName(e.target.value)} placeholder="氏名" />
-              }
-            </div>
-            <div style={s.metaRow}>
-              <span style={s.ml}>部署</span>
-              {readOnly
-                ? <span style={s.metaVal}>{dept}</span>
-                : <input style={s.metaInput} value={dept} onChange={(e) => setDept(e.target.value)} placeholder="部署名" />
               }
             </div>
             <div style={s.metaRow}><span style={s.ml}>対象月</span><span style={s.metaVal}>{monthLabel}</span></div>
