@@ -21,7 +21,7 @@ export default function App() {
   if (loading) {
     return (
       <div style={styles.loadingPage}>
-        <div style={{ fontSize: '36px', marginBottom: '12px' }}>✈</div>
+        <div style={{ fontSize: '36px', marginBottom: '12px' }}>🚅</div>
         <p style={{ color: '#8888aa', fontSize: '14px' }}>読み込み中...</p>
       </div>
     )
