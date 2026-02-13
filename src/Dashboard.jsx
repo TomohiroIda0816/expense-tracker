@@ -19,9 +19,13 @@ export default function Dashboard({ session }) {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
   const [pastReport, setPastReport] = useState(null)
   const [pastTrips, setPastTrips] = useState([])
+  const [showSettings, setShowSettings] = useState(false)
+  const [settingsName, setSettingsName] = useState('')
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsMsg, setSettingsMsg] = useState('')
   const userId = session.user.id
 
-  useEffect(() => { (async () => { const { data } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (data) setProfile(data) })() }, [userId])
+  useEffect(() => { (async () => { const { data } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (data) { setProfile(data); setSettingsName(data.display_name || '') } })() }, [userId])
 
   const loadCurrentReport = useCallback(async (month) => {
     setLoading(true)
@@ -61,14 +65,18 @@ export default function Dashboard({ session }) {
 
   const deleteTrip = async (tripId) => { await supabase.from('trips').delete().eq('id', tripId); setTrips(trips.filter(t => t.id !== tripId)) }
 
-  const updateProfile = async (name) => {
-    await supabase.from('profiles').update({ display_name: name }).eq('id', userId)
-    setProfile({ ...profile, display_name: name })
-  }
-
   const viewPastReport = async (report) => {
     const { data } = await supabase.from('trips').select('*').eq('report_id', report.id).order('date_from')
     setPastReport(report); setPastTrips(data || []); setView('pastDetail')
+  }
+
+  const saveSettings = async () => {
+    setSettingsSaving(true)
+    await supabase.from('profiles').update({ display_name: settingsName }).eq('id', userId)
+    setProfile({ ...profile, display_name: settingsName })
+    setSettingsMsg('保存しました')
+    setSettingsSaving(false)
+    setTimeout(() => setSettingsMsg(''), 2000)
   }
 
   const st = {
@@ -78,13 +86,26 @@ export default function Dashboard({ session }) {
     headerLeft: { display: 'flex', alignItems: 'center', gap: '14px' },
     headerIcon: { fontSize: '30px', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea, #764ba2)', borderRadius: '14px', boxShadow: '0 4px 16px rgba(102,126,234,0.4)' },
     title: { fontSize: '20px', fontWeight: 800, margin: 0, color: '#fff' },
-    userInfo: { fontSize: '12px', color: '#8888aa', margin: 0 },
-    logoutBtn: { padding: '8px 16px', background: 'rgba(255,255,255,0.06)', color: '#8888aa', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' },
+    userInfo: { fontSize: '12px', color: '#8888aa', margin: 0, cursor: 'pointer' },
+    headerBtns: { display: 'flex', gap: '8px' },
+    settingsBtn: { padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: '#8888aa', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' },
+    logoutBtn: { padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: '#8888aa', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' },
     nav: { display: 'flex', gap: '4px', marginBottom: '20px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '4px' },
     navBtn: { flex: 1, padding: '11px', background: 'transparent', color: '#8888aa', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' },
     navActive: { flex: 1, padding: '11px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' },
     monthSelector: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' },
     monthInput: { padding: '8px 12px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', color: '#f0f0f0', fontSize: '15px', outline: 'none' },
+    // Settings modal
+    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' },
+    modal: { width: '100%', maxWidth: '400px', background: '#1e1e3a', borderRadius: '16px', padding: '28px', border: '1px solid rgba(255,255,255,0.1)' },
+    modalTitle: { fontSize: '18px', fontWeight: 700, color: '#fff', margin: '0 0 20px', textAlign: 'center' },
+    modalLabel: { display: 'block', fontSize: '12px', fontWeight: 600, color: '#9999bb', marginBottom: '6px' },
+    modalInput: { width: '100%', padding: '10px 14px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', color: '#f0f0f0', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+    modalEmail: { fontSize: '13px', color: '#8888aa', padding: '8px 0', marginBottom: '12px' },
+    modalActions: { display: 'flex', gap: '10px', marginTop: '20px' },
+    modalSave: { flex: 1, padding: '11px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' },
+    modalCancel: { padding: '11px 20px', background: 'rgba(255,255,255,0.08)', color: '#aaa', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', fontSize: '14px', cursor: 'pointer' },
+    modalMsg: { fontSize: '13px', color: '#66bb6a', textAlign: 'center', marginTop: '12px' },
   }
 
   if (loading) return (
@@ -99,10 +120,33 @@ export default function Dashboard({ session }) {
       <div style={st.header}>
         <div style={st.headerLeft}>
           <div style={st.headerIcon}>🚅</div>
-          <div><h1 style={st.title}>出張経費管理</h1><p style={st.userInfo}>{profile?.display_name || session.user.email}</p></div>
+          <div><h1 style={st.title}>出張経費管理</h1><p style={st.userInfo} onClick={() => setShowSettings(true)}>{profile?.display_name || session.user.email}</p></div>
         </div>
-        <button style={st.logoutBtn} onClick={() => supabase.auth.signOut()}>ログアウト</button>
+        <div style={st.headerBtns}>
+          <button style={st.settingsBtn} onClick={() => setShowSettings(true)}>⚙ 設定</button>
+          <button style={st.logoutBtn} onClick={() => supabase.auth.signOut()}>ログアウト</button>
+        </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div style={st.overlay} onClick={(e) => { if (e.target === e.currentTarget) setShowSettings(false) }}>
+          <div style={st.modal}>
+            <h2 style={st.modalTitle}>⚙ アカウント設定</h2>
+            <div style={st.modalEmail}>📧 {session.user.email}</div>
+            <div>
+              <label style={st.modalLabel}>申請者名（申請書に記載されます）</label>
+              <input style={st.modalInput} value={settingsName} onChange={(e) => setSettingsName(e.target.value)} placeholder="氏名を入力" />
+            </div>
+            {settingsMsg && <p style={st.modalMsg}>{settingsMsg}</p>}
+            <div style={st.modalActions}>
+              <button style={st.modalSave} onClick={saveSettings} disabled={settingsSaving}>{settingsSaving ? '保存中...' : '保存'}</button>
+              <button style={st.modalCancel} onClick={() => setShowSettings(false)}>閉じる</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={st.nav}>
         <button style={view === 'current' || view === 'export' ? st.navActive : st.navBtn} onClick={() => setView('current')}>📝 当月の入力</button>
         <button style={view === 'past' || view === 'pastDetail' ? st.navActive : st.navBtn} onClick={() => setView('past')}>📂 過去の申請一覧</button>
@@ -117,9 +161,9 @@ export default function Dashboard({ session }) {
         <TripForm onAdd={addTrip} onUpdate={updateTrip} editTrip={editTrip} onCancelEdit={() => setEditTrip(null)} userId={userId} />
         <TripList trips={trips} onEdit={setEditTrip} onDelete={deleteTrip} onExport={() => setView('export')} />
       </>}
-      {view === 'export' && <ExportView trips={trips} profile={profile} targetMonth={selectedMonth} onBack={() => setView('current')} onUpdateProfile={updateProfile} />}
+      {view === 'export' && <ExportView trips={trips} profile={profile} targetMonth={selectedMonth} onBack={() => setView('current')} />}
       {view === 'past' && <PastReports userId={userId} onViewReport={viewPastReport} />}
-      {view === 'pastDetail' && pastReport && <ExportView trips={pastTrips} profile={profile} targetMonth={pastReport.target_month} onBack={() => setView('past')} onUpdateProfile={updateProfile} readOnly />}
+      {view === 'pastDetail' && pastReport && <ExportView trips={pastTrips} profile={profile} targetMonth={pastReport.target_month} onBack={() => setView('past')} readOnly />}
     </div></div>
   )
 }
