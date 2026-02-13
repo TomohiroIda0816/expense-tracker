@@ -124,9 +124,9 @@ export default function Dashboard({ session }) {
     await supabase.auth.signOut()
   }
 
-  const updateProfile = async (name, dept) => {
-    await supabase.from('profiles').update({ display_name: name, department: dept }).eq('id', userId)
-    setProfile({ ...profile, display_name: name, department: dept })
+  const updateProfile = async (name) => {
+    await supabase.from('profiles').update({ display_name: name }).eq('id', userId)
+    setProfile({ ...profile, display_name: name })
   }
 
   const viewPastReport = async (report) => {
@@ -139,7 +139,7 @@ export default function Dashboard({ session }) {
   if (loading) {
     return (
       <div style={styles.loadingPage}>
-        <div style={{ fontSize: '32px', marginBottom: '12px' }}>✈</div>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚅</div>
         <p style={{ color: '#8888aa', fontSize: '14px' }}>データを読み込み中...</p>
       </div>
     )
@@ -151,10 +151,10 @@ export default function Dashboard({ session }) {
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
-            <div style={styles.headerIcon}>✈</div>
+            <div style={styles.headerIcon}>🚅</div>
             <div>
               <h1 style={styles.title}>出張経費管理</h1>
-              <p style={styles.userInfo}>{profile?.display_name || session.user.email}（{profile?.department || '未設定'}）</p>
+              <p style={styles.userInfo}>{profile?.display_name || session.user.email}</p>
             </div>
           </div>
           <button style={styles.logoutBtn} onClick={handleLogout}>ログアウト</button>
