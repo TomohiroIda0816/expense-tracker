@@ -6,7 +6,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [department, setDepartment] = useState('')
+
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,7 +29,6 @@ export default function AuthPage() {
         if (data.user) {
           await supabase.from('profiles').update({
             display_name: displayName,
-            department: department,
           }).eq('id', data.user.id)
         }
         setMessage('確認メールを送信しました。メール内のリンクをクリックしてアカウントを有効化してください。')
@@ -42,7 +41,7 @@ export default function AuthPage() {
     <div style={styles.page}>
       <div style={styles.card}>
         <div style={styles.header}>
-          <div style={styles.icon}>✈</div>
+          <div style={styles.icon}>🚅</div>
           <h1 style={styles.title}>出張経費管理</h1>
           <p style={styles.subtitle}>Business Trip Expense Tracker</p>
         </div>
@@ -62,10 +61,6 @@ export default function AuthPage() {
               <div style={styles.field}>
                 <label style={styles.label}>氏名</label>
                 <input style={styles.input} value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="山田 太郎" required />
-              </div>
-              <div style={styles.field}>
-                <label style={styles.label}>部署</label>
-                <input style={styles.input} value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="営業部" required />
               </div>
             </>
           )}
